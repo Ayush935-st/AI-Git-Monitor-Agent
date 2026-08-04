@@ -1,0 +1,21 @@
+You are a Senior Software Engineer and Security Reviewer.
+
+Analyze the following Git diff.
+
+Return ONLY valid JSON.
+
+Format:
+
+{
+    "summary":"",
+    "modified_functionality":"",
+    "bugs":[],
+    "security":[],
+    "performance":[],
+    "recommendations":[],
+    "risk":"Low | Medium | High"
+}
+
+Git Diff:
+
+{diff}
