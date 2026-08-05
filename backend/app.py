@@ -1,7 +1,13 @@
-from fastapi import FastAPI, logger
+from fastapi import FastAPI
+from backend.utils.logger import logger
+from starlette.exceptions import HTTPException
+from backend.agents.webhook_agent import WebhookAgent
 
 from backend.database import Base, engine
 from backend.scheduler import SchedulerService
+
+from backend.services.git_service import GitService
+from backend.config import settings
 
 app = FastAPI(
     title="AI Git Monitoring Agent",
@@ -61,26 +67,10 @@ scheduler = SchedulerService()
 def startup():
     scheduler.start()
 
+webhook_agent = WebhookAgent()
 from typing import Dict, Any
 
 @app.post("/webhook/github")
 async def github_webhook(payload: Dict[str, Any]):
 
-    repository = payload.get("repository", {}).get("full_name")
-    branch = payload.get("ref")
-    commit_id = payload.get("head_commit", {}).get("id")
-    commit_message = payload.get("head_commit", {}).get("message")
-    author = (
-        payload.get("head_commit", {})
-        .get("author", {})
-        .get("name")
-    )
-
-    return {
-        "status": "success",
-        "repository": repository,
-        "branch": branch,
-        "commit_id": commit_id,
-        "commit_message": commit_message,
-        "author": author
-    }
+    return webhook_agent.process(payload)

@@ -202,3 +202,53 @@ ZeroDivisionError: division by zero
 2026-08-05 16:28:31 | INFO     | AIGitMonitoringAgent | scheduler.py:24 | Running scheduled Git monitoring...
 2026-08-05 16:28:32 | INFO     | AIGitMonitoringAgent | git_service.py:58 | Latest changes pulled.
 2026-08-05 16:28:32 | INFO     | AIGitMonitoringAgent | git_monitor_agent.py:40 | No new commits found.
+2026-08-05 11:41:05 | INFO     | AIGitMonitoringAgent | git_service.py:47 | Repository loaded.
+2026-08-05 11:41:05 | INFO     | AIGitMonitoringAgent | git_monitor_agent.py:21 | Monitoring started from commit: 5b2471720c93ee30e5764a19f3d3b3ae9ec9712a
+2026-08-05 11:41:05 | INFO     | AIGitMonitoringAgent | scheduler.py:49 | Scheduler started.
+2026-08-05 11:48:47 | INFO     | AIGitMonitoringAgent | git_service.py:47 | Repository loaded.
+2026-08-05 11:48:47 | INFO     | AIGitMonitoringAgent | git_monitor_agent.py:21 | Monitoring started from commit: 5b2471720c93ee30e5764a19f3d3b3ae9ec9712a
+2026-08-05 11:48:47 | INFO     | AIGitMonitoringAgent | scheduler.py:49 | Scheduler started.
+2026-08-05 11:49:45 | INFO     | AIGitMonitoringAgent | git_service.py:47 | Repository loaded.
+2026-08-05 11:49:47 | INFO     | AIGitMonitoringAgent | scheduler.py:24 | Running scheduled Git monitoring...
+2026-08-05 11:49:47 | INFO     | AIGitMonitoringAgent | git_service.py:58 | Latest changes pulled.
+2026-08-05 11:49:48 | INFO     | AIGitMonitoringAgent | git_service.py:58 | Latest changes pulled.
+2026-08-05 11:49:48 | INFO     | AIGitMonitoringAgent | git_monitor_agent.py:40 | No new commits found.
+2026-08-05 11:50:47 | INFO     | AIGitMonitoringAgent | scheduler.py:24 | Running scheduled Git monitoring...
+2026-08-05 11:50:48 | INFO     | AIGitMonitoringAgent | git_service.py:58 | Latest changes pulled.
+2026-08-05 11:50:48 | INFO     | AIGitMonitoringAgent | git_monitor_agent.py:40 | No new commits found.
+2026-08-05 11:51:47 | INFO     | AIGitMonitoringAgent | scheduler.py:24 | Running scheduled Git monitoring...
+2026-08-05 11:51:49 | INFO     | AIGitMonitoringAgent | git_service.py:58 | Latest changes pulled.
+2026-08-05 11:51:49 | INFO     | AIGitMonitoringAgent | git_monitor_agent.py:40 | No new commits found.
+2026-08-05 11:55:23 | INFO     | AIGitMonitoringAgent | git_service.py:47 | Repository loaded.
+2026-08-05 11:55:23 | INFO     | AIGitMonitoringAgent | git_monitor_agent.py:21 | Monitoring started from commit: 5b2471720c93ee30e5764a19f3d3b3ae9ec9712a
+2026-08-05 11:55:23 | INFO     | AIGitMonitoringAgent | scheduler.py:49 | Scheduler started.
+2026-08-05 11:56:13 | INFO     | AIGitMonitoringAgent | webhook_agent.py:22 | GitHub webhook received.
+2026-08-05 11:56:13 | INFO     | AIGitMonitoringAgent | git_service.py:47 | Repository loaded.
+2026-08-05 11:56:16 | INFO     | AIGitMonitoringAgent | git_service.py:58 | Latest changes pulled.
+2026-08-05 11:56:23 | INFO     | AIGitMonitoringAgent | scheduler.py:24 | Running scheduled Git monitoring...
+2026-08-05 11:56:24 | INFO     | AIGitMonitoringAgent | git_service.py:58 | Latest changes pulled.
+2026-08-05 11:56:24 | INFO     | AIGitMonitoringAgent | git_monitor_agent.py:40 | No new commits found.
+2026-08-05 11:57:23 | INFO     | AIGitMonitoringAgent | scheduler.py:24 | Running scheduled Git monitoring...
+2026-08-05 11:57:24 | INFO     | AIGitMonitoringAgent | git_service.py:58 | Latest changes pulled.
+2026-08-05 11:57:24 | INFO     | AIGitMonitoringAgent | git_monitor_agent.py:40 | No new commits found.
+2026-08-05 12:01:56 | INFO     | AIGitMonitoringAgent | git_service.py:47 | Repository loaded.
+2026-08-05 12:01:56 | INFO     | AIGitMonitoringAgent | git_monitor_agent.py:21 | Monitoring started from commit: 5b2471720c93ee30e5764a19f3d3b3ae9ec9712a
+2026-08-05 12:01:56 | INFO     | AIGitMonitoringAgent | scheduler.py:49 | Scheduler started.
+2026-08-05 12:02:56 | INFO     | AIGitMonitoringAgent | scheduler.py:24 | Running scheduled Git monitoring...
+2026-08-05 12:02:58 | INFO     | AIGitMonitoringAgent | git_service.py:58 | Latest changes pulled.
+2026-08-05 12:02:58 | INFO     | AIGitMonitoringAgent | git_monitor_agent.py:40 | No new commits found.
+2026-08-05 12:03:11 | INFO     | AIGitMonitoringAgent | webhook_agent.py:22 | GitHub webhook received.
+2026-08-05 12:03:11 | INFO     | AIGitMonitoringAgent | git_service.py:47 | Repository loaded.
+2026-08-05 12:03:12 | INFO     | AIGitMonitoringAgent | git_service.py:58 | Latest changes pulled.
+2026-08-05 12:03:13 | INFO     | AIGitMonitoringAgent | webhook_agent.py:38 | Generating AI Review...
+2026-08-05 12:03:13 | INFO     | AIGitMonitoringAgent | review_agent.py:42 | Generating AI code review...
+2026-08-05 12:03:13 | INFO     | AIGitMonitoringAgent | llm_services.py:41 | Sending request to NVIDIA NIM...
+2026-08-05 12:03:34 | INFO     | AIGitMonitoringAgent | llm_services.py:61 | Response received successfully.
+2026-08-05 12:03:34 | INFO     | AIGitMonitoringAgent | review_agent.py:48 | AI review completed.
+2026-08-05 12:03:34 | INFO     | AIGitMonitoringAgent | webhook_agent.py:42 | AI Review Generated.
+2026-08-05 12:03:56 | INFO     | AIGitMonitoringAgent | scheduler.py:24 | Running scheduled Git monitoring...
+2026-08-05 12:03:57 | INFO     | AIGitMonitoringAgent | git_service.py:58 | Latest changes pulled.
+2026-08-05 12:03:57 | INFO     | AIGitMonitoringAgent | git_monitor_agent.py:40 | No new commits found.
+2026-08-05 12:04:56 | INFO     | AIGitMonitoringAgent | scheduler.py:24 | Running scheduled Git monitoring...
+2026-08-05 12:04:57 | INFO     | AIGitMonitoringAgent | git_service.py:58 | Latest changes pulled.
+2026-08-05 12:04:57 | INFO     | AIGitMonitoringAgent | git_monitor_agent.py:40 | No new commits found.
