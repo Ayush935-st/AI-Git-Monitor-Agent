@@ -50,15 +50,21 @@ class WebhookAgent:
             latest_commit.hexsha
         )
 
-        logger.info("Reports generated successfully.")
- 
+        logger.info("Sending email...")
+
+        self.notification_agent.notify(
+            receiver_email=settings.smtp_email,
+            report_path=pdf_report
+        )
+
+        logger.info("Email sent successfully.")
 
         return {
             "status": "success",
             "repository": payload.get("repository", {}).get("full_name"),
-            "branch": payload.get("ref"),
             "latest_commit": latest_commit.hexsha,
-            "changed_files": changed_files,
             "markdown_report": markdown_report,
-            "pdf_report": pdf_report
+            "pdf_report": pdf_report,
+            "email_sent": True,
         }
+    
