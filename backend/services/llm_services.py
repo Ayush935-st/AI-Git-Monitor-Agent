@@ -18,13 +18,13 @@ class LLMService:
 
     def generate_response(self, prompt: str) -> str:
         """
-        Send prompt to NVIDIA NIM and return AI response.
+        Send prompt to NVIDIA NIM and return the AI engineering review.
         """
-        print("Prompt:", prompt)
 
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
+            "Accept": "application/json",
         }
 
         payload = {
@@ -35,37 +35,66 @@ class LLMService:
                     "content": prompt,
                 }
             ],
+            "temperature": 0.2,
+            "max_tokens": 4096,
+            "reasoning_budget": 1024,
+            "stream": False,
         }
 
         try:
-            logger.info("Sending request to NVIDIA NIM...")
 
-            print("Model:", self.model)
-            print("URL:", f"{self.BASE_URL}/chat/completions")
-
-            response = requests.post(
-            f"{self.BASE_URL}/chat/completions",
-            headers=headers,
-            json=payload,
-            timeout=100,
+            logger.info(
+                "Sending request to NVIDIA NIM..."
             )
 
-            print("Status Code:", response.status_code)
-            print("Response:")
-            print(response.text)
+            logger.info(
+                f"Model: {self.model}"
+            )
+
+            response = requests.post(
+                f"{self.BASE_URL}/chat/completions",
+                headers=headers,
+                json=payload,
+                timeout=120,
+            )
+
+            logger.info(
+                f"NVIDIA response status: "
+                f"{response.status_code}"
+            )
 
             response.raise_for_status()
 
             result = response.json()
 
-            logger.info("Response received successfully.")
+            content = (
+                result["choices"][0]["message"]
+                .get("content", "")
+            )
 
-            return result["choices"][0]["message"]["content"]
+            if not content:
+                raise RuntimeError(
+                    "NVIDIA returned an empty response."
+                )
+
+            logger.info(
+                "Response received successfully."
+            )
+
+            return content
 
         except Timeout:
-            logger.error("NVIDIA API request timed out.")
+
+            logger.error(
+                "NVIDIA API request timed out."
+            )
+
             raise
 
-        except RequestException as e:
-            logger.exception(e)
+        except RequestException:
+
+            logger.exception(
+                "NVIDIA API request failed."
+            )
+
             raise

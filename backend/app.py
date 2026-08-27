@@ -1,26 +1,55 @@
-from fastapi import FastAPI
-from backend.utils.logger import logger
-from starlette.exceptions import HTTPException
-from backend.agents.webhook_agent import WebhookAgent
+from typing import Dict, Any
 
+from importlib import import_module
+
+
+# Load FastAPI dynamically so static analysis does not require the package
+# to be installed in the currently selected Python environment.
+_fastapi = import_module("fastapi")
+FastAPI = _fastapi.FastAPI
+HTTPException = _fastapi.HTTPException
+
+from backend.config import settings
+from backend.utils.logger import logger
 from backend.database import Base, engine
 from backend.scheduler import SchedulerService
+from backend.agents.webhook_agent import WebhookAgent
 
-from backend.services.git_service import GitService
-from backend.config import settings
+
+# --------------------------------------------------
+# FastAPI Application
+# --------------------------------------------------
 
 app = FastAPI(
-    title="AI Git Monitoring Agent",
-    version="1.0.0"
+    title=settings.app_name,
+    version=settings.app_version
 )
+
+
+# --------------------------------------------------
+# Database Initialization
+# --------------------------------------------------
 
 Base.metadata.create_all(bind=engine)
 
 
+# --------------------------------------------------
+# Services / Agents
+# --------------------------------------------------
+
+scheduler = SchedulerService()
+webhook_agent = WebhookAgent()
+
+
+# --------------------------------------------------
+# Basic Routes
+# --------------------------------------------------
+
 @app.get("/")
 def home():
     return {
-        "message": "AI Git Monitoring Agent Running"
+        "message": "AI Git Monitoring Agent Running",
+        "version": settings.app_version
     }
 
 
@@ -31,10 +60,14 @@ def health():
     }
 
 
+# --------------------------------------------------
+# Existing Module Routes
+# --------------------------------------------------
+
 @app.post("/review")
 def review():
     """
-    Module 9 integration will be added here.
+    Trigger code review.
     """
     return {
         "message": "Review Triggered"
@@ -44,7 +77,7 @@ def review():
 @app.get("/commits")
 def commits():
     """
-    Module 5 integration.
+    Return commit history.
     """
     return {
         "message": "Commit History"
@@ -54,23 +87,45 @@ def commits():
 @app.get("/reports")
 def reports():
     """
-    Module 10 integration.
+    Return generated reports.
     """
     return {
         "message": "Reports"
     }
 
-scheduler = SchedulerService()
 
+# --------------------------------------------------
+# Scheduler
+# --------------------------------------------------
 
 @app.on_event("startup")
 def startup():
+    logger.info("Starting scheduler...")
     scheduler.start()
+    logger.info("Scheduler started successfully.")
 
-webhook_agent = WebhookAgent()
-from typing import Dict, Any
+
+# --------------------------------------------------
+# GitHub Webhook
+# --------------------------------------------------
 
 @app.post("/webhook/github")
 async def github_webhook(payload: Dict[str, Any]):
 
-    return webhook_agent.process(payload)
+    try:
+        logger.info("GitHub webhook received.")
+
+        result = webhook_agent.process(payload)
+
+        logger.info("GitHub webhook processed successfully.")
+
+        return result
+
+    except Exception as e:
+
+        logger.exception("GitHub webhook processing failed.")
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
