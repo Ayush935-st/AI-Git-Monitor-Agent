@@ -8,6 +8,7 @@ from importlib import import_module
 _fastapi = import_module("fastapi")
 FastAPI = _fastapi.FastAPI
 HTTPException = _fastapi.HTTPException
+BackgroundTasks = _fastapi.BackgroundTasks
 
 from backend.config import settings
 from backend.utils.logger import logger
@@ -106,26 +107,56 @@ def startup():
 
 
 # --------------------------------------------------
+# GitHub Webhook Background Processing
+# --------------------------------------------------
+
+def process_github_webhook(payload: Dict[str, Any]):
+    """
+    Process the GitHub webhook in the background.
+
+    The long-running AI review pipeline is executed after the
+    webhook response has already been returned to GitHub.
+    """
+
+    try:
+        logger.info("Starting background GitHub webhook processing.")
+
+        webhook_agent.process(payload)
+
+        logger.info(
+            "Background GitHub webhook processing completed successfully."
+        )
+
+    except Exception:
+        logger.exception(
+            "Background GitHub webhook processing failed."
+        )
+
+
+# --------------------------------------------------
 # GitHub Webhook
 # --------------------------------------------------
 
 @app.post("/webhook/github")
-async def github_webhook(payload: Dict[str, Any]):
+async def github_webhook(
+    payload: Dict[str, Any],
+    background_tasks: BackgroundTasks
+):
+    """
+    Receive GitHub webhook and queue the AI review pipeline.
 
-    try:
-        logger.info("GitHub webhook received.")
+    Returns immediately so GitHub does not timeout while the
+    LLM, report generation, and email notification are running.
+    """
 
-        result = webhook_agent.process(payload)
+    logger.info("GitHub webhook received.")
 
-        logger.info("GitHub webhook processed successfully.")
+    background_tasks.add_task(
+        process_github_webhook,
+        payload
+    )
 
-        return result
-
-    except Exception as e:
-
-        logger.exception("GitHub webhook processing failed.")
-
-        raise HTTPException(
-            status_code=500,
-            detail=str(e)
-        )
+    return {
+        "status": "accepted",
+        "message": "GitHub webhook received and queued for processing."
+    }
