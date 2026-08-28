@@ -36,9 +36,11 @@ class LLMService:
                 }
             ],
             "temperature": 0.2,
-            "max_tokens": 4096,
-            "reasoning_budget": 1024,
+            "max_tokens": 1024,
             "stream": False,
+            "chat_template_kwargs": {
+                "enable_thinking": False
+            },
         }
 
         try:
@@ -55,7 +57,7 @@ class LLMService:
                 f"{self.BASE_URL}/chat/completions",
                 headers=headers,
                 json=payload,
-                timeout=120,
+                timeout=60,
             )
 
             logger.info(

@@ -1,187 +1,110 @@
-from typing import TypedDict, Optional, Dict, Any
-
 from langgraph.graph import StateGraph, START, END
 
-from backend.tools.code_analyzer import CodeAnalyzer
-from backend.tools.security_scanner import SecurityScanner
+from backend.agents.agent_state import MultiAgentState
+from backend.agents.code_analysis_agent import CodeAnalysisAgent
+from backend.agents.security_agent import SecurityAgent
+from backend.agents.risk_agent import RiskAgent
 from backend.agents.review_agent import ReviewAgent
 
 
-class CodeReviewState(TypedDict, total=False):
-    repository: str
-    commit: str
-    changed_files: list[str]
-    git_diff: str
+# =========================================================
+# Agents
+# =========================================================
 
-    code_analysis: Dict[str, Any]
-    security_analysis: Dict[str, Any]
-    risk_score: int
-
-    llm_review: Optional[str]
-    final_review: Optional[Dict[str, Any]]
-
-
-# ---------------------------------
-# Analysis tools
-# ---------------------------------
-
-code_analyzer = CodeAnalyzer()
-security_scanner = SecurityScanner()
+code_agent = CodeAnalysisAgent()
+security_agent = SecurityAgent()
+risk_agent = RiskAgent()
 review_agent = ReviewAgent()
 
 
-# ---------------------------------
-# Node 1: Git Analysis
-# ---------------------------------
+# =========================================================
+# Supervisor
+# =========================================================
 
-def git_analysis_node(state: CodeReviewState):
-
-    changed_files = state.get("changed_files", [])
-    git_diff = state.get("git_diff", "")
+def supervisor_node(state: MultiAgentState):
 
     return {
-        "code_analysis": {
-            "changed_file_count": len(changed_files),
-            "changed_files": changed_files,
-            "diff_size": len(git_diff),
-        }
+        "current_agent": "supervisor",
+        "workflow_status": "analysis_started",
     }
 
 
-# ---------------------------------
-# Node 2: Code-Based Analysis
-# ---------------------------------
+# =========================================================
+# Code Analysis Agent
+# =========================================================
 
-def code_analysis_node(state: CodeReviewState):
+def code_analysis_node(state: MultiAgentState):
 
-    changed_files = state.get("changed_files", [])
-    git_diff = state.get("git_diff", "")
+    result = code_agent.analyze(state)
 
-    analysis = code_analyzer.analyze(
-        changed_files=changed_files,
-        git_diff=git_diff,
-    )
+    return result
+
+
+# =========================================================
+# Security Agent
+# =========================================================
+
+def security_analysis_node(state: MultiAgentState):
+
+    result = security_agent.analyze(state)
+
+    return result
+
+
+# =========================================================
+# Analysis Merge
+# =========================================================
+
+def analysis_merge_node(state: MultiAgentState):
 
     return {
-        "code_analysis": {
-            **state.get("code_analysis", {}),
-            **analysis,
-            "status": "completed",
-        }
+        "current_agent": "supervisor",
+        "workflow_status": "analysis_completed",
     }
 
 
-# ---------------------------------
-# Node 3: Security Analysis
-# ---------------------------------
+# =========================================================
+# Risk Agent
+# =========================================================
 
-def security_analysis_node(state: CodeReviewState):
+def risk_assessment_node(state: MultiAgentState):
 
-    git_diff = state.get("git_diff", "")
-
-    analysis = security_scanner.scan(git_diff)
+    result = risk_agent.analyze(state)
 
     return {
-        "security_analysis": {
-            **analysis,
-            "status": "completed",
-        }
+        **result,
+        "workflow_status": "risk_assessment_completed",
     }
 
 
-# ---------------------------------
-# Node 4: Risk Assessment
-# ---------------------------------
+# =========================================================
+# Review Agent
+# =========================================================
 
-def risk_assessment_node(state: CodeReviewState):
-
-    code_analysis = state.get("code_analysis", {})
-    security_analysis = state.get("security_analysis", {})
-
-    risk_score = 0
-
-    for finding in code_analysis.get("findings", []):
-
-        severity = finding.get("severity", "").lower()
-
-        if severity == "high":
-            risk_score += 5
-
-        elif severity == "medium":
-            risk_score += 2
-
-        elif severity == "low":
-            risk_score += 1
-
-    for finding in security_analysis.get("findings", []):
-
-        severity = finding.get("severity", "").lower()
-
-        if severity == "high":
-            risk_score += 5
-
-        elif severity == "medium":
-            risk_score += 2
-
-        elif severity == "low":
-            risk_score += 1
-
-    risk_score = min(risk_score, 10)
-
-    if risk_score >= 7:
-        risk_level = "HIGH"
-
-    elif risk_score >= 4:
-        risk_level = "MEDIUM"
-
-    else:
-        risk_level = "LOW"
-
-    return {
-        "risk_score": risk_score,
-
-        "code_analysis": {
-            **code_analysis,
-            "risk_level": risk_level,
-        },
-    }
-
-
-# ---------------------------------
-# Node 5: LLM Engineering Review
-# ---------------------------------
-
-def llm_review_node(state: CodeReviewState):
-
-    repository = state.get("repository", "")
-    commit = state.get("commit", "")
-    changed_files = state.get("changed_files", [])
-    git_diff = state.get("git_diff", "")
-
-    code_analysis = state.get("code_analysis", {})
-    security_analysis = state.get("security_analysis", {})
-    risk_score = state.get("risk_score", 0)
+def llm_review_node(state: MultiAgentState):
 
     review = review_agent.review_code(
-        repository=repository,
-        commit=commit,
-        changed_files=changed_files,
-        git_diff=git_diff,
-        code_analysis=code_analysis,
-        security_analysis=security_analysis,
-        risk_score=risk_score,
+        repository=state.get("repository", ""),
+        commit=state.get("commit", ""),
+        changed_files=state.get("changed_files", []),
+        git_diff=state.get("git_diff", ""),
+        code_analysis=state.get("code_analysis", {}),
+        security_analysis=state.get("security_analysis", {}),
+        risk_score=state.get("risk_score", 0),
     )
 
     return {
-        "llm_review": review
+        "llm_review": review,
+        "current_agent": "review",
+        "workflow_status": "review_completed",
     }
 
 
-# ---------------------------------
-# Node 6: Final Review
-# ---------------------------------
+# =========================================================
+# Final Review
+# =========================================================
 
-def final_review_node(state: CodeReviewState):
+def final_review_node(state: MultiAgentState):
 
     return {
         "final_review": {
@@ -191,35 +114,66 @@ def final_review_node(state: CodeReviewState):
             "code_analysis": state.get("code_analysis"),
             "security_analysis": state.get("security_analysis"),
             "risk_score": state.get("risk_score"),
+            "risk_level": state.get("risk_level"),
             "llm_review": state.get("llm_review"),
-        }
+        },
+        "current_agent": "supervisor",
+        "workflow_status": "completed",
     }
 
 
-# ---------------------------------
-# Build LangGraph
-# ---------------------------------
+# =========================================================
+# Build Graph
+# =========================================================
 
 def build_code_review_graph():
 
-    graph = StateGraph(CodeReviewState)
+    graph = StateGraph(MultiAgentState)
 
-    graph.add_node("git_analysis", git_analysis_node)
+    # Register nodes
+    graph.add_node("supervisor", supervisor_node)
     graph.add_node("code_analysis", code_analysis_node)
     graph.add_node("security_analysis", security_analysis_node)
+    graph.add_node("analysis_merge", analysis_merge_node)
     graph.add_node("risk_assessment", risk_assessment_node)
     graph.add_node("llm_review", llm_review_node)
     graph.add_node("final_review", final_review_node)
 
-    graph.add_edge(START, "git_analysis")
-    graph.add_edge("git_analysis", "code_analysis")
-    graph.add_edge("code_analysis", "security_analysis")
-    graph.add_edge("security_analysis", "risk_assessment")
+    # -----------------------------------------------------
+    # Supervisor → Parallel Analysis
+    # -----------------------------------------------------
+
+    graph.add_edge(START, "supervisor")
+
+    graph.add_edge("supervisor", "code_analysis")
+    graph.add_edge("supervisor", "security_analysis")
+
+    # -----------------------------------------------------
+    # Parallel Analysis → Merge
+    # -----------------------------------------------------
+
+    graph.add_edge("code_analysis", "analysis_merge")
+    graph.add_edge("security_analysis", "analysis_merge")
+
+    # -----------------------------------------------------
+    # Risk → Review → Final
+    # -----------------------------------------------------
+
+    graph.add_edge("analysis_merge", "risk_assessment")
     graph.add_edge("risk_assessment", "llm_review")
     graph.add_edge("llm_review", "final_review")
+
+    # -----------------------------------------------------
+    # End
+    # -----------------------------------------------------
+
     graph.add_edge("final_review", END)
 
     return graph.compile()
 
+
+# =========================================================
+# Compiled Graph
+# =========================================================
 
 code_review_graph = build_code_review_graph()

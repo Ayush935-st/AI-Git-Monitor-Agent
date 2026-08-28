@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from backend.agents.code_review_graph import code_review_graph
 
 
@@ -16,14 +18,23 @@ def test_code_review_graph():
 """
     }
 
-    result = code_review_graph.invoke(test_state)
+    mock_review = """
+The code contains a hard-coded password.
+This is a high-severity security issue.
+The credential should be moved to a secure environment variable or secret manager.
+"""
+
+    with patch(
+        "backend.agents.review_agent.ReviewAgent.review_code",
+        return_value=mock_review
+    ):
+        result = code_review_graph.invoke(test_state)
 
     print("\n===== CODE REVIEW RESULT =====")
     print(result)
 
     # Deterministic analysis
     assert result["risk_score"] == 5
-
     assert result["code_analysis"]["risk_level"] == "MEDIUM"
 
     # Security detection
@@ -34,7 +45,7 @@ def test_code_review_graph():
     assert finding["type"] == "password"
     assert finding["severity"] == "high"
 
-    # LLM review
+    # Mocked LLM review
     assert result["llm_review"] is not None
     assert len(result["llm_review"]) > 0
 
